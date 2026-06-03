@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pro Audio Visualizer</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #0f172a; color: #f8fafc; display: flex; height: 100vh; overflow: hidden; flex-direction: row; }
+        
+        /* Sidebar Controls */
+        .sidebar { width: 320px; background: #1e293b; padding: 20px; overflow-y: auto; border-right: 1px solid #334155; }
+        .sidebar h2 { font-size: 1.2rem; margin-bottom: 20px; color: #38bdf8; text-align: center; }
+        .control-group { margin-bottom: 15px; background: #0f172a; padding: 10px; border-radius: 8px; }
+        .control-group label { display: block; font-size: 0.85rem; margin-bottom: 5px; color: #94a3b8; }
+        .control-group input[type="file"], .control-group input[type="text"], .control-group select { width: 100%; padding: 8px; border-radius: 5px; border: 1px solid #475569; background: #1e293b; color: white; margin-bottom: 5px;}
+        .control-group input[type="range"] { width: 100%; accent-color: #38bdf8; }
+        
+        /* Main Workspace */
+        .workspace { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; position: relative; }
+        .canvas-container { background: #000; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border-radius: 8px; overflow: hidden; display: flex; justify-content: center; align-items: center; }
+        canvas { max-width: 100%; max-height: 70vh; object-fit: contain; }
+        
+        /* Playback & Action Buttons */
+        .actions { margin-top: 20px; display: flex; gap: 15px; }
+        button { padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        .btn-play { background: #10b981; color: white; }
+        .btn-play:hover { background: #059669; }
+        .btn-record { background: #ef4444; color: white; }
+        .btn-record:hover { background: #dc2626; }
+        .btn-record.recording { background: #b91c1c; animation: pulse 1s infinite; }
+        
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            body { flex-direction: column; }
+            .sidebar { width: 100%; height: 40vh; border-right: none; border-bottom: 1px solid #334155; }
+            .workspace { height: 60vh; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <h2>Visualizer Controls</h2>
+        
+        <div class="control-group">
+            <label>1. Upload Audio</label>
+            <input type="file" id="audioUpload" accept="audio/*">
+        </div>
+        
+        <div class="control-group">
+            <label>2. Background Image</label>
+            <input type="file" id="imageUpload" accept="image/*">
+            <label>Image Opacity</label>
+            <input type="range" id="imgOpacity" min="0" max="1" step="0.1" value="0.5">
+        </div>
+
+        <div class="control-group">
+            <label>3. Add Text</label>
+            <input type="text" id="customText" placeholder="Enter Song Name or Artist">
+            <label>Text Size</label>
+            <input type="range" id="textSize" min="20" max="150" value="60">
+            <label>Text Y Position</label>
+            <input type="range" id="textY" min="10" max="90" value="50">
+        </div>
+
+        <div class="control-group">
+            <label>4. Beat & Vibration Settings</label>
+            <label>Beat Sensitivity</label>
+            <input type="range" id="beatSensitivity" min="0.5" max="2.5" step="0.1" value="1.5">
+            <label>Visualizer Color</label>
+            <input type="color" id="vizColor" value="#38bdf8" style="width:100%; height:30px; border:none;">
+        </div>
+
+        <div class="control-group">
+            <label>5. Aspect Ratio (Canvas Size)</label>
+            <select id="aspectRatio">
+                <option value="16:9">YouTube (16:9)</option>
+                <option value="9:16">Shorts/Reels (9:16)</option>
+                <option value="1:1">Square (1:1)</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="workspace">
+        <div class="canvas-container" id="canvasBox">
+            <canvas id="canvas" width="1280" height="720"></canvas>
+        </div>
+        <div class="actions">
+            <button class="btn-play" id="playBtn">Play / Pause</button>
+            <button class="btn-record" id="recordBtn">Start Recording</button>
+            <a id="downloadLink" style="display:none"></a>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const audioUpload = document.getElementById('audioUpload');
+        const imageUpload = document.getElementById('imageUpload');
+        const playBtn = document.getElementById('playBtn');
+        const recordBtn = document.getElementById('recordBtn');
+        
+        let audioCtx, analyser, source, audioData;
+        let audioEle = new Audio();
+        let isPlaying = false;
+        let isRecording = false;
+        let mediaRecorder, recordedChunks = [];
+        let reqAnimFrame;
+        
+        // Settings
+        let bgImg = new Image();
+        let uiSettings = {
+            opacity: 0.5, text: "", textSize: 60, textY: 50,
+            sensitivity: 1.5, color: "#38bdf8", ratio: "16:9"
+        };
+
+        // Inputs Bindings
+        document.getElementById('imgOpacity').addEventListener('input', (e) => uiSettings.opacity = e.target.value);
+        document.getElementById('customText').addEventListener('input', (e) => uiSettings.text = e.target.value);
+        document.getElementById('textSize').addEventListener('input', (e) => uiSettings.textSize = e.target.value);
+        document.getElementById('textY').addEventListener('input', (e) => uiSettings.textY = e.target.value);
+        document.getElementById('beatSensitivity').addEventListener('input', (e) => uiSettings.sensitivity = e.target.value);
+        document.getElementById('vizColor').addEventListener('input', (e) => uiSettings.color = e.target.value);
+        
+        document.getElementById('aspectRatio').addEventListener('change', (e) => {
+            uiSettings.ratio = e.target.value;
+            if(uiSettings.ratio === "16:9") { canvas.width = 1280; canvas.height = 720; }
+            else if(uiSettings.ratio === "9:16") { canvas.width = 720; canvas.height = 1280; }
+            else if(uiSettings.ratio === "1:1") { canvas.width = 1080; canvas.height = 1080; }
+            drawFrame(); // Redraw
+        });
+
+        imageUpload.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) { bgImg.src = URL.createObjectURL(file); bgImg.onload = drawFrame; }
+        });
+
+        audioUpload.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                audioEle.src = URL.createObjectURL(file);
+                setupAudio();
+            }
+        });
+
+        function setupAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                analyser = audioCtx.createAnalyser();
+                analyser.fftSize = 256;
+                source = audioCtx.createMediaElementSource(audioEle);
+                source.connect(analyser);
+                analyser.connect(audioCtx.destination);
+                audioData = new Uint8Array(analyser.frequencyBinCount);
+            }
+        }
+
+        function drawFrame() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            let beatScale = 1;
+            
+            // Beat Detection Calculation
+            if (isPlaying && analyser) {
+                analyser.getByteFrequencyData(audioData);
+                // Get Bass frequency average for vibration
+                let bassAvg = (audioData[0] + audioData[1] + audioData[2]) / 3;
+                beatScale = 1 + ((bassAvg / 255) * (uiSettings.sensitivity * 0.2)); 
+            }
+
+            // Draw Background Image with Opacity & Vibration
+            if (bgImg.src) {
+                ctx.globalAlpha = uiSettings.opacity;
+                let imgW = canvas.width * beatScale;
+                let imgH = canvas.height * beatScale;
+                let imgX = (canvas.width - imgW) / 2;
+                let imgY = (canvas.height - imgH) / 2;
+                ctx.drawImage(bgImg, imgX, imgY, imgW, imgH);
+                ctx.globalAlpha = 1.0; // reset
+            }
+
+            // Draw Text with Beat Vibration
+            if (uiSettings.text) {
+                ctx.fillStyle = "white";
+                ctx.font = `bold ${uiSettings.textSize * beatScale}px 'Segoe UI'`;
+                ctx.textAlign = "center";
+                ctx.textBaseline = "middle";
+                ctx.shadowColor = "rgba(0,0,0,0.8)";
+                ctx.shadowBlur = 15;
+                let yPos = (canvas.height * uiSettings.textY) / 100;
+                ctx.fillText(uiSettings.text, canvas.width / 2, yPos);
+                ctx.shadowBlur = 0; // reset
+            }
+
+            // Draw Visualizer Bars
+            if (isPlaying && analyser) {
+                let barWidth = (canvas.width / audioData.length) * 2.5;
+                let barHeight;
+                let x = 0;
+                for (let i = 0; i < audioData.length; i++) {
+                    barHeight = audioData[i] * 1.5;
+                    ctx.fillStyle = uiSettings.color;
+                    ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
+                    x += barWidth + 2;
+                }
+            }
+
+            if (isPlaying || isRecording) { reqAnimFrame = requestAnimationFrame(drawFrame); }
+        }
+
+        playBtn.addEventListener('click', () => {
+            if (!audioEle.src) return alert("Pehle Audio upload karo!");
+            if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+            
+            if (isPlaying) { audioEle.pause(); isPlaying = false; cancelAnimationFrame(reqAnimFrame); } 
+            else { audioEle.play(); isPlaying = true; drawFrame(); }
+        });
+
+        // Recording Logic
+        recordBtn.addEventListener('click', () => {
+            if (!audioEle.src) return alert("Pehle Audio upload karo!");
+            
+            if (!isRecording) {
+                startRecording();
+                recordBtn.innerText = "Stop & Download";
+                recordBtn.classList.add("recording");
+            } else {
+                stopRecording();
+                recordBtn.innerText = "Start Recording";
+                recordBtn.classList.remove("recording");
+            }
+        });
+
+        function startRecording() {
+            isRecording = true;
+            recordedChunks = [];
+            
+            // Capture Canvas Video Stream
+            const canvasStream = canvas.captureStream(30); // 30 FPS
+            
+            // Capture Audio Stream
+            const audioDest = audioCtx.createMediaStreamDestination();
+            analyser.connect(audioDest);
+            
+            // Combine both
+            const combinedStream = new MediaStream([...canvasStream.getTracks(), ...audioDest.stream.getTracks()]);
+            
+            mediaRecorder = new MediaRecorder(combinedStream, { mimeType: 'video/webm' });
+            
+            mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) recordedChunks.push(e.data); };
+            mediaRecorder.onstop = () => {
+                const blob = new Blob(recordedChunks, { type: 'video/webm' });
+                const url = URL.createObjectURL(blob);
+                const a = document.getElementById('downloadLink');
+                a.style.display = 'block';
+                a.href = url;
+                a.download = 'Visualizer_Export.webm';
+                a.click();
+            };
+            
+            audioEle.currentTime = 0;
+            audioEle.play();
+            isPlaying = true;
+            drawFrame();
+            mediaRecorder.start();
+        }
+
+        function stopRecording() {
+            isRecording = false;
+            mediaRecorder.stop();
+            audioEle.pause();
+            isPlaying = false;
+        }
+        
+        drawFrame(); // Initial blank draw
+    </script>
+</body>
+</html>
