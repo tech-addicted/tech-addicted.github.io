@@ -2,49 +2,72 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pro Audio Visualizer</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Pro Audio Visualizer V3</title>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background-color: #0d0d0d; color: #ffffff; display: flex; height: 100vh; overflow: hidden; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, sans-serif; }
+        body { background-color: #0d0d0d; color: #ffffff; display: flex; flex-direction: row; height: 100vh; overflow: hidden; }
         
-        /* Sidebar Scrollable */
-        .sidebar { width: 350px; background: #1a1a1a; padding: 20px; overflow-y: auto; border-right: 1px solid #333; height: 100vh; }
-        .sidebar::-webkit-scrollbar { width: 6px; }
+        /* Sidebar Controls */
+        .sidebar { width: 320px; background: #1a1a1a; padding: 20px; overflow-y: auto; border-right: 1px solid #333; height: 100vh; padding-bottom: 80px; }
+        .sidebar::-webkit-scrollbar { width: 4px; }
         .sidebar::-webkit-scrollbar-thumb { background: #444; border-radius: 10px; }
         
-        h2 { font-size: 1.2rem; margin-bottom: 20px; color: #00d2ff; text-align: center; border-bottom: 1px solid #333; padding-bottom: 10px; }
-        .section-title { font-size: 0.9rem; color: #888; text-transform: uppercase; margin: 15px 0 10px; border-bottom: 1px solid #333; padding-bottom: 5px; }
+        h2 { font-size: 1.1rem; margin-bottom: 20px; color: #00d2ff; text-align: center; border-bottom: 1px solid #333; padding-bottom: 10px; }
+        .section-title { font-size: 0.85rem; color: #888; text-transform: uppercase; margin: 15px 0 10px; border-bottom: 1px solid #333; padding-bottom: 5px; }
         
         .control-group { margin-bottom: 12px; background: #222; padding: 10px; border-radius: 5px; }
         .control-group label { display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 5px; color: #ccc; }
         .control-group input[type="range"] { width: 100%; accent-color: #00d2ff; cursor: pointer; }
-        .control-group input[type="file"], .control-group select, .control-group input[type="text"], .control-group input[type="color"] { width: 100%; padding: 5px; background: #333; border: 1px solid #444; color: white; border-radius: 3px; font-size: 0.8rem; }
+        .control-group input[type="file"], .control-group select, .control-group input[type="text"], .control-group input[type="color"] { width: 100%; padding: 6px; background: #333; border: 1px solid #444; color: white; border-radius: 3px; font-size: 0.8rem; }
         
         /* Canvas Area */
-        .workspace { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #000; position: relative; }
-        .canvas-container { background: #000; box-shadow: 0 0 20px rgba(0, 210, 255, 0.2); }
-        canvas { max-width: 100%; max-height: 80vh; display: block; }
+        .workspace { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #000; position: relative; height: 100vh; }
+        .canvas-container { width: 100%; display: flex; justify-content: center; align-items: center; padding: 10px; }
+        canvas { max-width: 100%; max-height: 80vh; object-fit: contain; box-shadow: 0 0 20px rgba(0, 210, 255, 0.1); background: #000; }
         
-        .controls-bottom { position: absolute; bottom: 20px; display: flex; gap: 15px; background: rgba(0,0,0,0.7); padding: 10px 20px; border-radius: 30px; }
-        button { padding: 10px 20px; border: none; border-radius: 20px; cursor: pointer; font-weight: bold; transition: 0.3s; }
-        .btn-play { background: #00d2ff; color: #000; }
-        .btn-play:hover { background: #0099cc; }
+        /* Bottom Action Bar */
+        .actions-bar { position: fixed; bottom: 0; right: 0; width: calc(100% - 320px); background: #111; padding: 15px; border-top: 1px solid #333; display: flex; justify-content: center; gap: 15px; z-index: 100; }
+        button { padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 0.9rem; transition: 0.2s; color: white; }
+        .btn-play { background: #007acc; }
+        .btn-play:hover { background: #0099ff; }
+        .btn-record { background: #cc0000; display: flex; align-items: center; gap: 5px; }
+        .btn-record:hover { background: #ff0000; }
+        .btn-download { background: #009933; display: none; }
+        .btn-download:hover { background: #00cc44; }
+
+        .recording-dot { width: 10px; height: 10px; background: white; border-radius: 50%; display: none; }
+        .recording .recording-dot { display: block; animation: pulse 1s infinite; background: #fff; }
+        
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.2; } 100% { opacity: 1; } }
+
+        /* Responsive for Smartphone */
+        @media (max-width: 768px) {
+            body { flex-direction: column-reverse; overflow-y: auto; }
+            .sidebar { width: 100%; height: auto; border-right: none; padding-bottom: 90px; }
+            .workspace { height: 50vh; flex: none; position: sticky; top: 0; z-index: 10; border-bottom: 2px solid #333; }
+            canvas { max-height: 48vh; }
+            .actions-bar { width: 100%; justify-content: space-around; padding: 10px; }
+            button { padding: 10px; font-size: 0.8rem; }
+        }
     </style>
 </head>
 <body>
 
     <div class="sidebar">
-        <h2>Visualizer Studio Pro</h2>
+        <h2>Control Panel V3</h2>
 
-        <!-- Global Settings -->
-        <div class="section-title">Global Settings</div>
+        <div class="section-title">Media Setup</div>
         <div class="control-group">
-            <label>Upload Audio</label>
+            <label>1. Upload Audio</label>
             <input type="file" id="audioUpload" accept="audio/*">
         </div>
         <div class="control-group">
-            <label>Aspect Ratio</label>
+            <label>2. Upload Background</label>
+            <input type="file" id="bgUpload" accept="image/*">
+        </div>
+        <div class="control-group">
+            <label>Aspect Ratio (Video Size)</label>
             <select id="aspectRatio">
                 <option value="16:9">YouTube (16:9)</option>
                 <option value="9:16">Shorts/Reels (9:16)</option>
@@ -52,88 +75,42 @@
             </select>
         </div>
 
-        <!-- Background Layer -->
-        <div class="section-title">Background Layer</div>
+        <div class="section-title">Background & Effects</div>
         <div class="control-group">
-            <label>Upload Image</label>
-            <input type="file" id="bgUpload" accept="image/*">
+            <label>Image Opacity <span id="val-bgOp">0.5</span></label>
+            <input type="range" id="bgOpacity" min="0" max="1" step="0.1" value="0.5">
         </div>
         <div class="control-group">
-            <label>Opacity <span id="val-bgOp">1.0</span></label>
-            <input type="range" id="bgOpacity" min="0" max="1" step="0.1" value="1">
-        </div>
-        <div class="control-group">
-            <label>Zoom Size <span id="val-bgScale">1.0</span></label>
-            <input type="range" id="bgScale" min="0.5" max="2" step="0.1" value="1">
-        </div>
-        <div class="control-group">
-            <label>Beat Bounce (Vibration) <span id="val-bgBounce">0.1</span></label>
+            <label>Beat Bounce <span id="val-bgBounce">0.1</span></label>
             <input type="range" id="bgBounce" min="0" max="0.5" step="0.05" value="0.1">
         </div>
+        <div class="control-group">
+            <label>Particle Count <span id="val-pCount">100</span></label>
+            <input type="range" id="pCount" min="0" max="300" value="100">
+        </div>
 
-        <!-- Text Layer -->
-        <div class="section-title">Text Layer</div>
+        <div class="section-title">Text Overlay</div>
         <div class="control-group">
             <label>Custom Text</label>
-            <input type="text" id="customText" placeholder="Enter Artist / Song Name">
+            <input type="text" id="customText" placeholder="Song Name / Artist">
         </div>
         <div class="control-group">
-            <label>Font Size <span id="val-textSize">60</span></label>
-            <input type="range" id="textSize" min="20" max="200" value="60">
+            <label>Text Size <span id="val-textSize">60</span></label>
+            <input type="range" id="textSize" min="20" max="150" value="60">
         </div>
         <div class="control-group">
-            <label>Text Color</label>
-            <input type="color" id="textColor" value="#ffffff">
-        </div>
-        <div class="control-group">
-            <label>X Position <span id="val-textX">50</span></label>
-            <input type="range" id="textX" min="0" max="100" value="50">
-        </div>
-        <div class="control-group">
-            <label>Y Position <span id="val-textY">50</span></label>
+            <label>Text Y Position <span id="val-textY">50</span></label>
             <input type="range" id="textY" min="0" max="100" value="50">
         </div>
-        <div class="control-group">
-            <label>Beat Bounce (Vibration) <span id="val-textBounce">0.2</span></label>
-            <input type="range" id="textBounce" min="0" max="1" step="0.1" value="0.2">
-        </div>
 
-        <!-- Visualizer Layer -->
         <div class="section-title">Visualizer Spectrum</div>
         <div class="control-group">
             <label>Color</label>
             <input type="color" id="vizColor" value="#00d2ff">
         </div>
         <div class="control-group">
-            <label>Y Position (Up/Down) <span id="val-vizY">80</span></label>
+            <label>Y Position <span id="val-vizY">80</span></label>
             <input type="range" id="vizY" min="0" max="100" value="80">
-        </div>
-        <div class="control-group">
-            <label>Bar Height Multiplier <span id="val-vizHeight">1.5</span></label>
-            <input type="range" id="vizHeight" min="0.5" max="3" step="0.1" value="1.5">
-        </div>
-
-        <!-- Particles Layer -->
-        <div class="section-title">Particle Effects</div>
-        <div class="control-group">
-            <label>Particle Count (Value) <span id="val-pCount">100</span></label>
-            <input type="range" id="pCount" min="0" max="300" value="100">
-        </div>
-        <div class="control-group">
-            <label>Base Speed <span id="val-pSpeed">2</span></label>
-            <input type="range" id="pSpeed" min="0" max="10" step="0.5" value="2">
-        </div>
-        <div class="control-group">
-            <label>Particle Color</label>
-            <input type="color" id="pColor" value="#ffffff">
-        </div>
-        <div class="control-group">
-            <label>Opacity <span id="val-pOp">0.8</span></label>
-            <input type="range" id="pOpacity" min="0" max="1" step="0.1" value="0.8">
-        </div>
-        <div class="control-group">
-            <label>Beat Reactivity <span id="val-pReact">1.0</span></label>
-            <input type="range" id="pReact" min="0" max="3" step="0.1" value="1.0">
         </div>
     </div>
 
@@ -141,26 +118,34 @@
         <div class="canvas-container">
             <canvas id="canvas" width="1280" height="720"></canvas>
         </div>
-        <div class="controls-bottom">
-            <button class="btn-play" id="playBtn">Play Audio</button>
-        </div>
+    </div>
+
+    <div class="actions-bar">
+        <button class="btn-play" id="playBtn">Play Audio</button>
+        <button class="btn-record" id="recordBtn"><div class="recording-dot"></div> <span id="recText">Start Record</span></button>
+        <a id="downloadLink" class="btn-download" download="visualizer.webm">Download Video</a>
     </div>
 
     <script>
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
         
-        let audioContext, analyser, source, dataArray;
+        let audioContext, analyser, source, dataArray, mediaDest;
         let isPlaying = false;
         let audio = new Audio();
         let bgImg = new Image();
         let particles = [];
         let bassValue = 0;
 
-        // Sync HTML values with spans
+        // Recording Variables
+        let mediaRecorder;
+        let recordedChunks = [];
+        let isRecording = false;
+
+        // Sync Sliders
         document.querySelectorAll('input[type="range"]').forEach(input => {
             input.addEventListener('input', (e) => {
-                const span = document.getElementById('val-' + e.target.id.replace('Opacity', 'Op').replace('Scale', 'Scale').replace('Bounce', 'Bounce'));
+                const span = document.getElementById('val-' + e.target.id.replace('Opacity', 'Op').replace('Bounce', 'Bounce'));
                 if(span) span.innerText = e.target.value;
                 if(e.target.id === 'pCount') initParticles();
             });
@@ -173,32 +158,31 @@
             canvas.width = w;
             canvas.height = h;
             initParticles();
+            drawStatic(); // Redraw static frame
         });
 
-        // Image Upload
         document.getElementById('bgUpload').addEventListener('change', (e) => {
-            if (e.target.files[0]) {
-                bgImg.src = URL.createObjectURL(e.target.files[0]);
-            }
+            if (e.target.files[0]) { bgImg.src = URL.createObjectURL(e.target.files[0]); bgImg.onload = drawStatic; }
         });
 
-        // Audio Upload
         document.getElementById('audioUpload').addEventListener('change', (e) => {
-            if (e.target.files[0]) {
-                audio.src = URL.createObjectURL(e.target.files[0]);
-            }
+            if (e.target.files[0]) audio.src = URL.createObjectURL(e.target.files[0]);
         });
 
-        // Play/Pause Button
+        // Play Setup
         document.getElementById('playBtn').addEventListener('click', () => {
-            if (!audio.src) return alert("Please upload an audio file first!");
+            if (!audio.src) return alert("Pehle Audio upload karo!");
             
             if (!audioContext) {
                 audioContext = new (window.AudioContext || window.webkitAudioContext)();
                 analyser = audioContext.createAnalyser();
+                mediaDest = audioContext.createMediaStreamDestination(); // For Recording
+                
                 source = audioContext.createMediaElementSource(audio);
                 source.connect(analyser);
-                analyser.connect(audioContext.destination);
+                analyser.connect(audioContext.destination); // Speaker output
+                analyser.connect(mediaDest); // Recorder output
+                
                 analyser.fftSize = 256;
                 dataArray = new Uint8Array(analyser.frequencyBinCount);
             }
@@ -215,17 +199,61 @@
             isPlaying = !isPlaying;
         });
 
-        // Initialize Particles
+        // Record Setup
+        document.getElementById('recordBtn').addEventListener('click', () => {
+            if (!audio.src) return alert("Pehle Audio upload karo!");
+            const recBtn = document.getElementById('recordBtn');
+            const dwnBtn = document.getElementById('downloadLink');
+
+            if (!isRecording) {
+                // Start Recording
+                recordedChunks = [];
+                const canvasStream = canvas.captureStream(30); // 30 FPS
+                
+                // Combine Audio and Video Streams
+                let combinedStream;
+                if (mediaDest && mediaDest.stream.getAudioTracks().length > 0) {
+                    combinedStream = new MediaStream([...canvasStream.getTracks(), ...mediaDest.stream.getAudioTracks()]);
+                } else {
+                    combinedStream = canvasStream; // Fallback if audio setup fails
+                }
+
+                mediaRecorder = new MediaRecorder(combinedStream, { mimeType: 'video/webm' });
+
+                mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) recordedChunks.push(e.data); };
+                
+                mediaRecorder.onstop = () => {
+                    const blob = new Blob(recordedChunks, { type: 'video/webm' });
+                    const url = URL.createObjectURL(blob);
+                    dwnBtn.href = url;
+                    dwnBtn.style.display = 'inline-block';
+                };
+
+                mediaRecorder.start();
+                isRecording = true;
+                recBtn.classList.add('recording');
+                document.getElementById('recText').innerText = "Stop Record";
+                dwnBtn.style.display = 'none';
+
+                // Auto play if not playing
+                if (!isPlaying) document.getElementById('playBtn').click();
+
+            } else {
+                // Stop Recording
+                mediaRecorder.stop();
+                isRecording = false;
+                recBtn.classList.remove('recording');
+                document.getElementById('recText').innerText = "Start Record";
+            }
+        });
+
         function initParticles() {
             particles = [];
             let count = parseInt(document.getElementById('pCount').value);
             for (let i = 0; i < count; i++) {
                 particles.push({
-                    x: Math.random() * canvas.width,
-                    y: Math.random() * canvas.height,
-                    size: Math.random() * 3 + 1,
-                    speedY: Math.random() * -2 - 1,
-                    speedX: (Math.random() - 0.5) * 1
+                    x: Math.random() * canvas.width, y: Math.random() * canvas.height,
+                    size: Math.random() * 3 + 1, speedY: Math.random() * -2 - 1
                 });
             }
         }
@@ -234,70 +262,45 @@
         function drawBackground() {
             if (!bgImg.src) return;
             const op = parseFloat(document.getElementById('bgOpacity').value);
-            const baseScale = parseFloat(document.getElementById('bgScale').value);
             const bounce = parseFloat(document.getElementById('bgBounce').value) * bassValue;
-            
-            const finalScale = baseScale + bounce;
-            const dw = canvas.width * finalScale;
-            const dh = canvas.height * finalScale;
-            const dx = (canvas.width - dw) / 2;
-            const dy = (canvas.height - dh) / 2;
+            const finalScale = 1 + bounce;
+            const dw = canvas.width * finalScale; const dh = canvas.height * finalScale;
+            const dx = (canvas.width - dw) / 2; const dy = (canvas.height - dh) / 2;
 
             ctx.globalAlpha = op;
             ctx.drawImage(bgImg, dx, dy, dw, dh);
-            ctx.globalAlpha = 1.0; // Reset
+            ctx.globalAlpha = 1.0;
         }
 
         function drawParticles() {
             const count = parseInt(document.getElementById('pCount').value);
             if (count === 0) return;
-
-            const speedMultiplier = parseFloat(document.getElementById('pSpeed').value);
-            const react = parseFloat(document.getElementById('pReact').value) * bassValue;
-            const pOp = parseFloat(document.getElementById('pOpacity').value);
-            const pCol = document.getElementById('pColor').value;
-
-            ctx.globalAlpha = pOp;
-            ctx.fillStyle = pCol;
-
+            ctx.fillStyle = "#ffffff";
             particles.forEach(p => {
                 ctx.beginPath();
-                ctx.arc(p.x, p.y, p.size + (react * 10), 0, Math.PI * 2);
+                ctx.arc(p.x, p.y, p.size + (bassValue * 5), 0, Math.PI * 2);
                 ctx.fill();
-
-                p.y += p.speedY * speedMultiplier - (react * 20);
-                p.x += p.speedX;
-
-                if (p.y < 0) {
-                    p.y = canvas.height;
-                    p.x = Math.random() * canvas.width;
-                }
+                p.y += p.speedY - (bassValue * 10);
+                if (p.y < 0) { p.y = canvas.height; p.x = Math.random() * canvas.width; }
             });
-            ctx.globalAlpha = 1.0;
         }
 
         function drawVisualizer() {
             if (!analyser) return;
             analyser.getByteFrequencyData(dataArray);
 
-            // Calculate Bass for Bounce Effects (average of low frequencies)
             let bassSum = 0;
             for(let i = 0; i < 10; i++) { bassSum += dataArray[i]; }
             bassValue = (bassSum / 10) / 255;
 
             const color = document.getElementById('vizColor').value;
-            const yPosPercent = parseFloat(document.getElementById('vizY').value);
-            const yPos = (yPosPercent / 100) * canvas.height;
-            const heightMultiplier = parseFloat(document.getElementById('vizHeight').value);
-
+            const yPos = (parseFloat(document.getElementById('vizY').value) / 100) * canvas.height;
             const barWidth = (canvas.width / dataArray.length) * 2.5;
-            let barHeight;
             let x = 0;
 
             for (let i = 0; i < dataArray.length; i++) {
-                barHeight = dataArray[i] * heightMultiplier;
+                let barHeight = dataArray[i] * 1.5;
                 ctx.fillStyle = color;
-                // Draw Bars from center Y going Up and Down
                 ctx.fillRect(x, yPos - barHeight / 2, barWidth - 1, barHeight);
                 x += barWidth;
             }
@@ -306,35 +309,29 @@
         function drawText() {
             const text = document.getElementById('customText').value;
             if (!text) return;
-
-            const baseSize = parseFloat(document.getElementById('textSize').value);
-            const bounce = parseFloat(document.getElementById('textBounce').value) * bassValue;
-            const finalSize = baseSize + (bounce * 200);
-
-            const xPercent = parseFloat(document.getElementById('textX').value);
-            const yPercent = parseFloat(document.getElementById('textY').value);
-            const xPos = (xPercent / 100) * canvas.width;
-            const yPos = (yPercent / 100) * canvas.height;
+            const finalSize = parseFloat(document.getElementById('textSize').value) + (bassValue * 50);
+            const yPos = (parseFloat(document.getElementById('textY').value) / 100) * canvas.height;
             
-            const color = document.getElementById('textColor').value;
-
-            ctx.fillStyle = color;
+            ctx.fillStyle = "#ffffff";
             ctx.font = `bold ${finalSize}px sans-serif`;
-            ctx.textAlign = "center";
-            ctx.textBaseline = "middle";
-            ctx.shadowColor = "rgba(0,0,0,0.8)";
-            ctx.shadowBlur = 15;
-            ctx.fillText(text, xPos, yPos);
-            ctx.shadowBlur = 0; // Reset
+            ctx.textAlign = "center"; ctx.textBaseline = "middle";
+            ctx.shadowColor = "rgba(0,0,0,0.8)"; ctx.shadowBlur = 10;
+            ctx.fillText(text, canvas.width / 2, yPos);
+            ctx.shadowBlur = 0;
+        }
+
+        // Draw static frame before audio plays
+        function drawStatic() {
+            ctx.fillStyle = "#000000";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            drawBackground();
         }
 
         function draw() {
-            if (!isPlaying) return;
+            if (!isPlaying && !isRecording) return;
             requestAnimationFrame(draw);
-
             ctx.fillStyle = "#000000";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
-
             drawBackground();
             drawParticles();
             drawVisualizer();
