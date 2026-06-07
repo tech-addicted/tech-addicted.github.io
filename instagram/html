@@ -1,0 +1,1070 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Instagram Chat Simulator - Clean Minimalism</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Beautiful Typography -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <!-- Lucide Icons via CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Ultra-HD HTML to Image CDN (Zero Oklab crash errors) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html-to-image/1.11.11/html-to-image.min.js"></script>
+
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #0A0A0A;
+      color: #FFFFFF;
+      margin: 0;
+      min-height: 100vh;
+    }
+    .font-display {
+      font-family: 'Space Grotesk', sans-serif;
+    }
+    .font-mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0A0A0A;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #222222;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #333333;
+    }
+  </style>
+</head>
+<body class="selection:bg-white/10 selection:text-white">
+
+  <!-- Top Navigation Control Grid -->
+  <header class="border-b border-[#222] bg-[#0A0A0A] sticky top-0 z-40 px-6 py-4 flex flex-col md:flex-row items-center justify-between gap-4">
+    <div class="flex items-center gap-3">
+      <div class="h-9 w-9 rounded bg-[#1A1A1A] border border-[#333] flex items-center justify-center text-zinc-300">
+        <i data-lucide="sparkles" class="w-4 h-4"></i>
+      </div>
+      <div>
+        <h1 class="font-light text-white text-base tracking-widest uppercase font-display">Instagram Chat Simulator</h1>
+        <p class="text-[9px] text-[#555] font-bold uppercase tracking-wider mt-0.5">Clean Minimalism Workspace</p>
+      </div>
+    </div>
+
+    <!-- Navigation tabs -->
+    <div class="flex bg-black p-1 rounded border border-[#222] gap-1">
+      <button id="tab-btn-editor" onclick="switchWorkspaceTab('editor')" class="px-4 py-1.5 rounded text-xs font-semibold tracking-wider uppercase transition flex items-center gap-1.5 bg-[#1A1A1A] text-white border border-[#333]">
+        <i data-lucide="smartphone" class="w-3.5 h-3.5"></i> 1. Live Sandbox Editor
+      </button>
+      <button id="tab-btn-embed" onclick="switchWorkspaceTab('embed')" class="px-4 py-1.5 rounded text-xs font-semibold tracking-wider uppercase transition flex items-center gap-1.5 text-zinc-500 hover:text-zinc-300 border border-transparent">
+        <i data-lucide="file-code" class="w-3.5 h-3.5"></i> 2. Copy Blogger HTML
+      </button>
+    </div>
+  </header>
+
+  <!-- Central Workspace Grid -->
+  <main class="max-w-7xl mx-auto px-4 py-8 lg:py-12 flex flex-col lg:flex-row gap-8 items-start">
+    
+    <!-- LEFT SIDEBAR PANEL: CONFIGURATOR / EMBED SCREEN -->
+    <div class="w-full lg:w-[420px] flex flex-col gap-6 shrink-0 order-2 lg:order-1">
+      
+      <!-- TAB 1: SANDBOX EDITOR CONTROLLER -->
+      <div id="workspace-editor" class="w-full bg-[#121212] border border-[#222] rounded-xl p-6 shadow-2xl flex flex-col gap-5">
+        
+        <!-- Header -->
+        <div class="flex items-center justify-between border-b border-[#222] pb-4">
+          <div class="flex flex-col">
+            <h2 class="text-[10px] font-bold uppercase tracking-widest text-[#555]">Simulator Config</h2>
+            <h1 class="text-xl font-light mt-1 text-white font-display">Designer Chat Pro</h1>
+          </div>
+          <span class="text-[9px] uppercase tracking-widest text-zinc-500 font-bold border border-[#222] px-2 py-1 rounded font-mono">V2.4.0</span>
+        </div>
+
+        <!-- Sidebar inner tabs -->
+        <div class="flex bg-black p-1 rounded border border-[#222] gap-1">
+          <button id="config-tab-btn-profile" onclick="switchConfigTab('profile')" class="flex-1 py-1.5 rounded text-xs font-semibold uppercase tracking-wider transition flex items-center justify-center gap-1.5 bg-[#1A1A1A] text-white border border-[#333]">
+            <i data-lucide="user" class="w-3.5 h-3.5"></i> Profile
+          </button>
+          <button id="config-tab-btn-style" onclick="switchConfigTab('style')" class="flex-1 py-1.5 rounded text-xs font-semibold uppercase tracking-wider transition flex items-center justify-center gap-1.5 text-zinc-500 hover:text-zinc-300 border border-transparent">
+            <i data-lucide="settings" class="w-3.5 h-3.5"></i> Style
+          </button>
+          <button id="config-tab-btn-messages" onclick="switchConfigTab('messages')" class="flex-1 py-1.5 rounded text-xs font-semibold uppercase tracking-wider transition flex items-center justify-center gap-1.5 text-zinc-500 hover:text-zinc-300 border border-transparent">
+            <i data-lucide="message-square" class="w-3.5 h-3.5"></i> Messages
+          </button>
+        </div>
+
+        <!-- CONFIG CONTENT CHUNKS -->
+        <div class="min-h-[300px]">
+          
+          <!-- PROFILE TAB CONTENT -->
+          <div id="config-panel-profile" class="flex flex-col gap-4">
+            <h3 class="text-[10px] uppercase font-semibold text-[#888] tracking-wider mb-1">Participant Details</h3>
+            
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-[10px] uppercase font-semibold text-[#888] tracking-wider mb-1.5">Display Name</label>
+                <input type="text" id="input-display-name" oninput="updateProfileState()" class="bg-black border border-[#333] rounded px-3 py-2 text-sm focus:outline-none focus:border-white w-full transition-colors text-white" value="Joydeb Das">
+              </div>
+              <div>
+                <label class="block text-[10px] uppercase font-semibold text-[#888] tracking-wider mb-1.5">Username</label>
+                <div class="relative">
+                  <span class="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 font-bold text-xs">@</span>
+                  <input type="text" id="input-username" oninput="updateProfileState()" class="bg-black border border-[#333] rounded pl-7 pr-3 py-2 text-sm focus:outline-none focus:border-white w-full transition-colors text-white" value="joydeb_das_official">
+                </div>
+              </div>
+            </div>
+
+            <div class="p-4 bg-black border border-[#222] rounded flex flex-col gap-3">
+              <div class="flex items-center justify-between">
+                <span class="text-xs text-zinc-300 font-bold flex items-center gap-1.5">
+                  <i data-lucide="shield-check" class="w-4 h-4 text-sky-500"></i> Blue Verified Badge
+                </span>
+                <label class="inline-flex items-center cursor-pointer">
+                  <input type="checkbox" id="check-verified" onchange="updateProfileState()" class="sr-only peer" checked>
+                  <div class="relative w-9 h-5 bg-zinc-850 border border-[#333] rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-zinc-400 after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-white peer-checked:after:bg-black"></div>
+                </label>
+              </div>
+
+              <div class="flex items-center justify-between">
+                <span class="text-xs text-zinc-300 font-bold flex items-center gap-1.5">
+                  <i data-lucide="smartphone" class="w-4 h-4 text-white"></i> Active Now Green Dot
+                </span>
+                <label class="inline-flex items-center cursor-pointer">
+                  <input type="checkbox" id="check-active" onchange="updateProfileState()" class="sr-only peer" checked>
+                  <div class="relative w-9 h-5 bg-zinc-850 border border-[#333] rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-zinc-400 after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-green-500 peer-checked:after:bg-white"></div>
+                </label>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3 mt-1">
+              <div class="flex flex-col gap-1.5">
+                <label class="text-[10px] uppercase font-semibold text-[#888] tracking-wider">Theirs Avatar Pic</label>
+                <div class="bg-black border border-dashed border-[#333] hover:border-zinc-500 text-center hover:bg-[#121212] p-3 rounded text-[11px] font-bold text-zinc-300 cursor-pointer overflow-hidden group transition relative">
+                  <div class="flex items-center justify-center gap-1.5">
+                    <i data-lucide="upload" class="w-3.5 h-3.5 text-zinc-400"></i>
+                    <span>Upload Pic</span>
+                  </div>
+                  <input type="file" id="upload-their-avatar" onchange="handleAvatarUpload(event, 'them')" class="absolute inset-0 opacity-0 cursor-pointer">
+                </div>
+              </div>
+              <div class="flex flex-col gap-1.5">
+                <label class="text-[10px] uppercase font-semibold text-[#888] tracking-wider">Your Avatar Pic</label>
+                <div class="bg-black border border-dashed border-[#333] hover:border-zinc-500 text-center hover:bg-[#121212] p-3 rounded text-[11px] font-bold text-zinc-300 cursor-pointer overflow-hidden group transition relative">
+                  <div class="flex items-center justify-center gap-1.5">
+                    <i data-lucide="upload" class="w-3.5 h-3.5 text-zinc-400"></i>
+                    <span>Upload Pic</span>
+                  </div>
+                  <input type="file" id="upload-your-avatar" onchange="handleAvatarUpload(event, 'me')" class="absolute inset-0 opacity-0 cursor-pointer">
+                </div>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3 mt-1">
+              <div>
+                <label class="block text-[10px] uppercase font-semibold text-[#888] tracking-wider mb-1.5">Status Message</label>
+                <input type="text" id="input-status-text" oninput="updateProfileState()" class="bg-black border border-[#333] rounded px-3 py-2 text-sm focus:outline-none focus:border-white w-full transition-colors text-white font-semibold" value="Active now">
+              </div>
+              <div>
+                <label class="block text-[10px] uppercase font-semibold text-[#888] tracking-wider mb-1.5">Unread Count</label>
+                <input type="text" id="input-unread-count" oninput="updateProfileState()" class="bg-black border border-[#333] rounded px-3 py-2 text-sm focus:outline-none focus:border-white w-full transition-colors text-white font-semibold" value="" placeholder="e.g. 3">
+              </div>
+            </div>
+          </div>
+
+          <!-- STYLE TAB CONTENT -->
+          <div id="config-panel-style" class="hidden flex flex-col gap-4">
+            <h3 class="text-[10px] uppercase font-semibold text-[#888] tracking-wider mb-1">Chat Skin & UI</h3>
+
+            <div class="flex flex-col gap-1.5 p-3.5 bg-black border border-[#222] rounded">
+              <label class="text-[10px] uppercase font-semibold text-[#888] tracking-wider flex items-center gap-1">
+                <i data-lucide="clock" class="w-3.5 h-3.5 text-zinc-300"></i> Device Time Override
+              </label>
+              <div class="flex gap-2">
+                <input type="text" id="input-custom-time" class="bg-black border border-[#333] rounded px-3 py-2 text-sm focus:outline-none focus:border-white flex-1 transition-colors text-white font-semibold" value="12:44">
+                <button onclick="resetTimeToNow()" class="px-3 bg-black border border-[#333] hover:bg-[#111] hover:border-zinc-400 text-zinc-300 hover:text-white rounded transition-all flex items-center justify-center">
+                  <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-[10px] uppercase font-semibold text-[#888] tracking-wider mb-2">Preset Chat Backgrounds</label>
+              <div class="grid grid-cols-2 gap-2">
+                <button onclick="setBackgroundPreset('black')" class="bg-preset-btn py-2 px-3 border border-white rounded text-xs font-bold transition flex items-center gap-1.5 text-white" id="preset-black">
+                  <span class="w-2.5 h-2.5 rounded-full bg-black border border-zinc-700"></span> Solid Dark
+                </button>
+                <button onclick="setBackgroundPreset('gray')" class="bg-preset-btn py-2 px-3 border border-[#333] rounded text-xs font-bold transition flex items-center gap-1.5 text-zinc-400 hover:text-white bg-black" id="preset-gray">
+                  <span class="w-2.5 h-2.5 rounded-full bg-[#1e1e1e]"></span> Slate Gray
+                </button>
+                <button onclick="setBackgroundPreset('blue')" class="bg-preset-btn py-2 px-3 border border-[#333] rounded text-xs font-bold transition flex items-center gap-1.5 text-zinc-400 hover:text-white bg-black" id="preset-blue">
+                  <span class="w-2.5 h-2.5 rounded-full bg-gradient-to-r from-sky-950 to-black"></span> Midnight Blue
+                </button>
+                <button onclick="setBackgroundPreset('purple')" class="bg-preset-btn py-2 px-3 border border-[#333] rounded text-xs font-bold transition flex items-center gap-1.5 text-zinc-400 hover:text-white bg-black" id="preset-purple">
+                  <span class="w-2.5 h-2.5 rounded-full bg-gradient-to-r from-purple-950 to-black"></span> Amethyst
+                </button>
+                <button onclick="setBackgroundPreset('instagram-gradient')" class="bg-preset-btn py-2 px-3 border border-[#333] rounded text-xs font-bold transition flex items-center gap-1.5 text-zinc-400 hover:text-white bg-black" id="preset-instagram-gradient">
+                  <span class="w-2.5 h-2.5 rounded-full bg-gradient-to-tr from-[#f56040] via-[#c13584] to-[#405de6] border border-white/10"></span> Classic Gradient
+                </button>
+                <button onclick="setBackgroundPreset('classic-light')" class="bg-preset-btn py-2 px-3 border border-[#333] rounded text-xs font-bold transition flex items-center gap-1.5 text-zinc-400 hover:text-white bg-black" id="preset-classic-light">
+                  <span class="w-2.5 h-2.5 rounded-full bg-white border border-zinc-300"></span> iOS Light Theme
+                </button>
+              </div>
+            </div>
+
+            <div class="flex flex-col gap-1.5">
+              <label class="text-[10px] uppercase font-semibold text-[#888] tracking-wider">Or Custom Color Background</label>
+              <div class="flex gap-2">
+                <input type="color" id="input-custom-bg" oninput="setCustomBackgroundColorOverride(this.value)" class="w-10 h-10 p-0 rounded bg-transparent border border-[#333] cursor-pointer overflow-hidden focus:outline-none">
+                <input type="text" id="input-custom-bg-hex" oninput="setCustomBackgroundColorOverride(this.value)" class="bg-black border border-[#333] rounded px-3 py-2 text-sm focus:outline-none focus:border-white flex-1 transition-colors text-white font-semibold" value="#000000" placeholder="#000000">
+              </div>
+            </div>
+
+            <div class="p-3.5 bg-black border border-[#222] rounded flex flex-col gap-2">
+              <div class="flex justify-between items-center text-[10px] uppercase font-semibold text-[#888] tracking-wider">
+                <span>Phone Battery Charge</span>
+                <span id="label-battery-charge" class="text-white font-mono">100%</span>
+              </div>
+              <input type="range" id="input-battery-level" min="1" max="100" value="100" oninput="updateDeviceBattery(this.value)" class="w-full h-1 bg-zinc-850 accent-white cursor-pointer">
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+              <div class="flex items-center justify-between p-3 bg-black border border-[#222] rounded">
+                <span class="text-[10px] uppercase font-semibold text-[#888] tracking-wider flex items-center gap-1.5">
+                  <i data-lucide="wifi" class="w-3.5 h-3.5 text-white/70"></i> WiFi Signal
+                </span>
+                <label class="inline-flex items-center cursor-pointer">
+                  <input type="checkbox" id="check-wifi" onchange="toggleSignalState()" class="sr-only peer" checked>
+                  <div class="relative w-8 h-4 bg-zinc-800 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-zinc-500 after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-white peer-checked:after:bg-black"></div>
+                </label>
+              </div>
+
+              <div class="flex items-center justify-between p-3 bg-black border border-[#222] rounded">
+                <span class="text-[10px] uppercase font-semibold text-[#888] tracking-wider flex items-center gap-1.5">
+                  <i data-lucide="signal" class="w-3.5 h-3.5 text-white/70"></i> Cellular
+                </span>
+                <label class="inline-flex items-center cursor-pointer">
+                  <input type="checkbox" id="check-cellular" onchange="toggleSignalState()" class="sr-only peer" checked>
+                  <div class="relative w-8 h-4 bg-zinc-800 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-zinc-500 after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-white peer-checked:after:bg-black"></div>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- MESSAGES TAB CONTENT -->
+          <div id="config-panel-messages" class="hidden flex flex-col gap-4">
+            
+            <!-- Default Composer Form -->
+            <div id="composer-main-box" class="flex flex-col gap-3.5">
+              <div class="flex justify-between items-center">
+                <h3 class="text-[10px] uppercase font-semibold text-[#888] tracking-wider">Message Composer</h3>
+                
+                <div class="flex bg-black p-1 rounded border border-[#222] gap-1">
+                  <button id="sender-btn-them" onclick="setComposerSender('them')" class="px-3 py-1 text-[10px] uppercase font-bold rounded transition bg-[#1A1A1A] text-white border border-[#333]">
+                    Receive
+                  </button>
+                  <button id="sender-btn-me" onclick="setComposerSender('me')" class="px-3 py-1 text-[10px] uppercase font-bold rounded transition text-zinc-500 hover:text-zinc-300">
+                    Send
+                  </button>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-3 bg-black p-1 rounded border border-[#222] gap-1">
+                <button id="type-btn-text" onclick="setComposerType('text')" class="py-1 text-[10px] font-bold rounded uppercase tracking-wider transition bg-[#1A1A1A] text-white border border-[#333]">
+                  💬 Text
+                </button>
+                <button id="type-btn-image" onclick="setComposerType('image')" class="py-1 text-[10px] font-bold rounded uppercase tracking-wider transition text-zinc-500 hover:text-zinc-300">
+                  🖼️ Image
+                </button>
+                <button id="type-btn-voice" onclick="setComposerType('voice')" class="py-1 text-[10px] font-bold rounded uppercase tracking-wider transition text-zinc-500 hover:text-zinc-300">
+                  🎙️ Voice
+                </button>
+              </div>
+
+              <!-- INPUT CHANNELS DECORATED BY CHOSEN FIELD TYPE -->
+              <div id="wrapper-input-text" class="space-y-1">
+                <textarea id="composer-textarea" rows="3" class="bg-black border border-[#333] rounded px-3 py-2 text-sm focus:outline-none focus:border-white w-full transition-colors text-white font-medium" placeholder="Write message bubble content here..."></textarea>
+              </div>
+
+              <div id="wrapper-input-voice" class="hidden p-3 bg-black border border-[#222] rounded flex items-center justify-between gap-3">
+                <div class="flex-1 flex flex-col gap-1">
+                  <span class="text-[10px] uppercase font-semibold text-[#888] tracking-wider">Duration</span>
+                  <input type="text" id="composer-voice-duration" class="bg-black border border-[#333] rounded px-3 py-1.5 text-xs focus:outline-none focus:border-white w-full transition-colors text-white font-bold" value="0:12">
+                </div>
+                <div class="p-2 bg-zinc-900 rounded border border-[#333]">
+                  <i data-lucide="music" class="w-5 h-5 text-white"></i>
+                </div>
+              </div>
+
+              <div id="wrapper-input-image" class="hidden flex flex-col gap-2 p-3 bg-black border border-[#222] rounded">
+                <span class="text-[10px] uppercase font-semibold text-[#888] tracking-wider">Image Attachment</span>
+                
+                <div id="preview-msg-image-wrap" class="hidden relative w-full h-[120px] rounded overflow-hidden border border-[#333] bg-black">
+                  <img id="preview-msg-image-img" src="" alt="Message preview" class="w-full h-full object-cover">
+                  <button onclick="clearComposerImage()" class="absolute top-1.5 right-1.5 bg-black/80 w-20 hover:bg-black text-[10px] font-bold py-1.5 rounded uppercase border border-[#333]">Change</button>
+                </div>
+                
+                <div id="uploader-msg-image-wrap" class="relative w-full h-[100px] border border-dashed border-[#333] rounded flex flex-col items-center justify-center cursor-pointer hover:bg-[#111] transition">
+                  <i data-lucide="camera" class="w-5 h-5 text-zinc-500 mb-1"></i>
+                  <span class="text-[10px] uppercase font-semibold text-[#888] tracking-wider">Choose Image</span>
+                  <input type="file" onchange="handleMessageImageUpload(event)" class="absolute inset-0 opacity-0 cursor-pointer">
+                </div>
+              </div>
+
+              <button onclick="addNewMessage()" class="w-full py-2.5 bg-white hover:bg-gray-200 text-black rounded font-bold text-xs uppercase tracking-widest transition flex items-center justify-center gap-1.5 focus:outline-none">
+                <i data-lucide="plus" class="w-4 h-4 text-black"></i> Add Message
+              </button>
+            </div>
+
+            <!-- Inline editor popup panel -->
+            <div id="composer-inline-editor" class="hidden p-4 bg-zinc-950 border border-[#333] rounded flex flex-col gap-3">
+              <div class="flex items-center justify-between">
+                <span class="text-[10px] uppercase font-bold text-white tracking-widest flex items-center gap-1">
+                  <i data-lucide="sparkles" class="w-3.5 h-3.5"></i> Editing Message
+                </span>
+                <button onclick="cancelInlineEditing()" class="text-[9px] text-zinc-400 hover:text-white bg-[#1A1A1A] border border-[#222] px-2 py-1 rounded transition uppercase font-semibold">
+                  Cancel Edit
+                </button>
+              </div>
+
+              <textarea id="inline-editTextarea" rows="2" class="bg-black border border-[#333] rounded px-3 py-2 text-sm focus:outline-none focus:border-white w-full transition-colors text-white font-medium"></textarea>
+
+              <div class="flex justify-between items-center mt-1">
+                <div class="flex gap-1 bg-black p-1 rounded border border-[#222]">
+                  <button id="inline-sender-them" onclick="setInlineSender('them')" class="px-2.5 py-1 text-[10px] uppercase font-bold rounded transition">Receive</button>
+                  <button id="inline-sender-me" onclick="setInlineSender('me')" class="px-2.5 py-1 text-[10px] uppercase font-bold rounded transition">Send</button>
+                </div>
+
+                <button onclick="saveInlineMessage()" class="px-4 py-2 bg-white text-black font-bold rounded text-xs uppercase tracking-wider hover:bg-gray-200 transition">
+                  Update
+                </button>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+        <!-- Panel Footer Block / Snapshot Buttons -->
+        <div class="mt-2 pt-4 border-t border-[#222] flex flex-col gap-2.5">
+          <button onclick="exportSnapshotPng()" class="w-full py-4 bg-[#0095F6] hover:bg-blue-500 text-white rounded-xl font-bold text-sm shadow-lg shadow-blue-900/20 active:scale-95 transition-transform uppercase tracking-wider">
+            Download HD Snapshot
+          </button>
+          
+          <div class="grid grid-cols-2 gap-2">
+            <button onclick="undoLastMsg()" class="bg-[#1A1A1A] border border-[#333] py-2 text-[11px] rounded hover:bg-[#222] font-semibold text-zinc-300 transition flex items-center justify-center gap-1.5 uppercase tracking-wider">
+              <i data-lucide="undo-2" class="w-3.5 h-3.5"></i> Undo last
+            </button>
+            <button onclick="clearAllMsg()" class="bg-[#1A1A1A] border border-[#ff453a]/20 py-2 text-[11px] rounded hover:bg-[#ff453a]/10 text-[#ff453a] font-semibold transition flex items-center justify-center gap-1.5 uppercase tracking-wider">
+              <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i> Clear all
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- TAB 2: BLOGGER EMBED CODE COPIER -->
+      <div id="workspace-embed" class="hidden w-full bg-[#121212] border border-[#222] rounded-xl p-6 shadow-2xl flex flex-col gap-4 animate-fadeIn">
+        <div class="flex items-center gap-2 border-b border-[#222] pb-3">
+          <i data-lucide="file-code" class="w-5 h-5 text-zinc-400"></i>
+          <h3 class="font-light text-white text-base tracking-widest uppercase font-display">Get Blogger HTML</h3>
+        </div>
+
+        <div class="flex items-start gap-2.5 bg-black border border-[#222] p-3.5 rounded">
+          <i data-lucide="alert-circle" class="w-5 h-5 text-white/75 shrink-0 mt-0.5"></i>
+          <div class="text-xs text-zinc-400 leading-relaxed font-semibold">
+            <p class="font-extrabold text-white text-[10px] uppercase tracking-wider">Perfect Blogger Isolation</p>
+            <p class="mt-1">
+              This module operates inside prefix-guarded namespaces (<code class="bg-[#1C1C1E] text-white font-mono text-[10px] px-1 py-0.5 rounded">.ig-*</code>) to guarantee dynamic stylesheets do not interfere with external layouts.
+            </p>
+          </div>
+        </div>
+
+        <div class="flex flex-col gap-3 p-4 bg-black border border-[#222] rounded text-xs">
+          <h4 class="font-semibold text-white text-[11px] uppercase tracking-wider flex items-center gap-1">
+            <i data-lucide="help-circle" class="w-3.5 h-3.5 text-zinc-500"></i> Quick Install Guide
+          </h4>
+          <ol class="list-decimal list-inside text-zinc-400 space-y-2 font-medium">
+            <li>Access the <span class="text-white font-semibold">Blogger Dashboard</span> panel.</li>
+            <li>Go to <span class="text-white font-semibold">Layout</span> options or edit any Post.</li>
+            <li>Mount a generic <span class="text-white font-semibold">HTML/JavaScript Widget</span> or select HTML View.</li>
+            <li>Inject the generated code block below and save changes.</li>
+          </ol>
+        </div>
+
+        <div class="relative mt-2">
+          <button onclick="copyWidgetCode()" id="copy-btn" class="w-full py-3.5 bg-white text-black font-bold rounded text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2 hover:bg-gray-200 focus:outline-none">
+            <i data-lucide="copy" class="w-4 h-4"></i> Copy Widget Code
+          </button>
+        </div>
+      </div>
+
+      <!-- General Interactive Tip Box -->
+      <div class="p-4 bg-[#121212] rounded-xl border border-[#222] flex items-start gap-3 text-xs w-full">
+        <i data-lucide="help-circle" class="w-4 h-4 text-[#555] shrink-0 mt-0.5"></i>
+        <div class="text-zinc-400 font-medium leading-relaxed">
+          <span class="font-bold text-zinc-300 uppercase tracking-widest text-[9px] block mb-1">Interactive Sandbox Tip</span>
+          Hover over any message bubble inside the device preview on the right to trigger rapid <span class="text-white">Delete, Sender-Swap, or Text Edit</span> buttons immediately.
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT PRESENTATION BOARD: SANDBOX DISPLAY -->
+    <div class="flex-1 flex justify-center items-center self-stretch min-h-[780px] bg-[#050505] border border-[#222] rounded-[32px] p-10 relative overflow-hidden order-1 lg:order-2">
+      <!-- Dotted grid visual backdrop -->
+      <div class="absolute inset-0 pointer-events-none opacity-60" style="background-image: radial-gradient(#222 1.5px, transparent 1.5px); background-size: 24px 24px;"></div>
+      
+      <!-- Virtual smartphone frame -->
+      <div class="relative z-10">
+        <div id="phone-canvas" class="w-[320px] h-[640px] bg-black rounded-[48px] border-[6px] border-[#222] shadow-2xl overflow-hidden relative flex flex-col">
+          
+          <!-- StatusBar Container -->
+          <div class="flex justify-between items-center px-8 pt-4 pb-2 text-[12px] font-bold z-10 bg-transparent text-white">
+            <span id="statusBar-time" class="tracking-tight select-none font-sans">12:44</span>
+            <div class="flex items-center gap-1.5">
+              <!-- Wifi display -->
+              <span id="statusBar-wifi" class="flex items-center">
+                <i data-lucide="wifi" class="w-3.5 h-3.5"></i>
+              </span>
+              <!-- Cellular display -->
+              <span id="statusBar-cellular" class="flex items-center">
+                <i data-lucide="signal" class="w-3.5 h-3.5"></i>
+              </span>
+              <!-- Battery symbol wrapper -->
+              <div class="flex items-center gap-1">
+                <span id="statusBar-battery-text" class="text-[9px] font-medium font-mono">100%</span>
+                <div class="w-4 h-2.5 border border-white/40 rounded-sm relative p-[1px] flex items-center">
+                  <div id="statusBar-battery-charge" class="h-full bg-white rounded-2xs w-full"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Header Component of Chat -->
+          <div id="phone-chat-header" class="px-4 py-2.5 flex items-center border-b border-white/5 z-10 bg-black text-white">
+            <!-- Back chevron -->
+            <div class="w-6 h-6 flex items-center justify-center shrink-0 mr-2 opacity-80 cursor-pointer">
+              <i data-lucide="chevron-left" class="w-6 h-6"></i>
+            </div>
+            <!-- Avatar picture dynamic -->
+            <div id="phone-header-avatar" class="w-8 h-8 rounded-full bg-gradient-to-br from-gray-700 to-gray-900 mr-2.5 border border-white/10 shrink-0 relative">
+              <img id="avatar-img-phone" src="" alt="" class="hidden w-full h-full rounded-full object-cover">
+              <!-- Active status indicator dot -->
+              <span id="phone-header-active-dot" class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-black"></span>
+            </div>
+            <!-- Name credentials -->
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-1">
+                <span id="phone-header-name" class="text-[13px] font-bold leading-tight truncate">Joydeb Das</span>
+                <span id="phone-header-badge" class="flex items-center shrink-0">
+                  <i data-lucide="badge-check" class="w-3.5 h-3.5 text-sky-500 fill-sky-500"></i>
+                </span>
+              </div>
+              <div id="phone-header-subtext" class="text-[10px] text-gray-400 font-medium truncate leading-tight">Active now</div>
+            </div>
+            <!-- Action icons -->
+            <div class="flex gap-4 items-center pl-2 shrink-0 opacity-80">
+              <i data-lucide="phone" class="w-4 h-4 cursor-pointer"></i>
+              <i data-lucide="video" class="w-4 h-4 cursor-pointer"></i>
+            </div>
+          </div>
+
+          <!-- Messaging Streams Container -->
+          <div id="chat-flow" class="flex-1 p-4 flex flex-col gap-2 overflow-y-auto bg-black scrollbar-thin">
+            <!-- Messages render targets -->
+          </div>
+
+          <!-- Input Footer Simulator -->
+          <div id="phone-chat-footer" class="p-4 flex items-center gap-2.5 bg-black border-t border-white/5">
+            <div class="w-8 h-8 rounded-full bg-[#0095F6] flex items-center justify-center shrink-0 cursor-pointer">
+              <i data-lucide="camera" class="w-4 h-4 text-white"></i>
+            </div>
+            <div class="flex-1 h-9 border border-[#222] bg-zinc-950 rounded-full flex items-center px-3.5 justify-between select-none">
+              <span class="text-[12px] text-gray-500 font-medium">Message...</span>
+              <div class="flex gap-2.5 items-center opacity-65 text-white">
+                <i data-lucide="mic" class="w-4 h-4 cursor-pointer"></i>
+                <i data-lucide="image" class="w-4 h-4 cursor-pointer"></i>
+                <i data-lucide="smile" class="w-4 h-4 cursor-pointer"></i>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bottom bar indicator for iOS layouts -->
+          <div class="h-1.5 w-24 bg-white/20 rounded-full mx-auto mb-1.5 shrink-0 select-none"></div>
+
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Vanilla Reactivity Engine Script -->
+  <script>
+    // System core state storage
+    let settings = {
+      name: "Joydeb Das",
+      username: "joydeb_das_official",
+      showVerifiedBadge: true,
+      isActive: true,
+      activeStatusText: "Active now",
+      unreadCount: "",
+      background: "black",
+      customBackgroundColor: "#000000",
+      batteryLevel: 100,
+      wifiConnected: true,
+      cellularConnected: true,
+      theirAvatar: "", // Data URL
+      yourAvatar: ""  // Data URL
+    };
+
+    let messages = [
+      { id: 1, sender: "them", type: "text", text: "Is the code working on Blogger?" },
+      { id: 2, sender: "me", type: "text", text: "Yes! Optimized for all screens and zero CSS conflicts with the existing theme. 🚀" }
+    ];
+
+    let currentComposerSender = "them";
+    let currentComposerType = "text";
+    let messageImageBase64 = "";
+    
+    let inlineEditingId = null;
+
+    // Initialize Page Controls
+    window.addEventListener('DOMContentLoaded', () => {
+      lucide.createIcons();
+      renderAll();
+    });
+
+    // Main Switcher for Nav tabs
+    function switchWorkspaceTab(tab) {
+      document.getElementById('tab-btn-editor').className = tab === 'editor' 
+        ? "px-4 py-1.5 rounded text-xs font-semibold tracking-wider uppercase transition flex items-center gap-1.5 bg-[#1A1A1A] text-white border border-[#333]"
+        : "px-4 py-1.5 rounded text-xs font-semibold tracking-wider uppercase transition flex items-center gap-1.5 text-zinc-500 hover:text-zinc-300 border border-transparent";
+      document.getElementById('tab-btn-embed').className = tab === 'embed'
+        ? "px-4 py-1.5 rounded text-xs font-semibold tracking-wider uppercase transition flex items-center gap-1.5 bg-[#1A1A1A] text-white border border-[#333]"
+        : "px-4 py-1.5 rounded text-xs font-semibold tracking-wider uppercase transition flex items-center gap-1.5 text-zinc-500 hover:text-zinc-300 border border-transparent";
+
+      if (tab === 'editor') {
+        document.getElementById('workspace-editor').classList.remove('hidden');
+        document.getElementById('workspace-embed').classList.add('hidden');
+      } else {
+        document.getElementById('workspace-editor').classList.add('hidden');
+        document.getElementById('workspace-embed').classList.remove('hidden');
+        prepareBloggerEmbedSnippet();
+      }
+    }
+
+    // Switcher for sidebar tabs
+    function switchConfigTab(tab) {
+      ['profile', 'style', 'messages'].forEach(item => {
+        const btn = document.getElementById(`config-tab-btn-${item}`);
+        const block = document.getElementById(`config-panel-${item}`);
+        if (item === tab) {
+          btn.className = "flex-1 py-1.5 rounded text-xs font-semibold uppercase tracking-wider transition flex items-center justify-center gap-1.5 bg-[#1A1A1A] text-white border border-[#333]";
+          block.classList.remove('hidden');
+        } else {
+          btn.className = "flex-1 py-1.5 rounded text-xs font-semibold uppercase tracking-wider transition flex items-center justify-center gap-1.5 text-zinc-500 hover:text-zinc-300 border border-transparent";
+          block.classList.add('hidden');
+        }
+      });
+    }
+
+    // Reset simulator clock to natural local client time
+    function resetTimeToNow() {
+      const now = new Date();
+      let hours = now.getHours();
+      let minutes = now.getMinutes();
+      const ampm = hours >= 12 ? 'PM' : 'AM';
+      hours = hours % 12;
+      hours = hours ? hours : 12; 
+      const minsStr = minutes < 10 ? '0' + minutes : minutes;
+      const formatted = `${hours}:${minsStr} ${ampm}`;
+      document.getElementById('input-custom-time').value = formatted;
+      document.getElementById('statusBar-time').textContent = formatted;
+    }
+
+    // Handle files inputs (Avatars)
+    function handleAvatarUpload(event, role) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        if (role === 'them') {
+          settings.theirAvatar = e.target.value || e.target.result;
+        } else {
+          settings.yourAvatar = e.target.value || e.target.result;
+        }
+        renderAll();
+      }
+      reader.readAsDataURL(file);
+    }
+
+    // Set Background skin presets
+    function setBackgroundPreset(presetName) {
+      settings.background = presetName;
+      settings.customBackgroundColor = "";
+      
+      // Update UI button highlights
+      document.querySelectorAll('.bg-preset-btn').forEach(btn => {
+        btn.className = "bg-preset-btn py-2 px-3 border border-[#333] rounded text-xs font-semibold transition flex items-center gap-1.5 text-zinc-400 hover:text-white bg-black";
+      });
+      document.getElementById(`preset-${presetName}`).className = "bg-preset-btn py-2 px-3 border border-white rounded text-xs font-bold transition flex items-center gap-1.5 text-white bg-[#1A1A1A]";
+
+      renderBackgroundSkins();
+    }
+
+    function setCustomBackgroundColorOverride(value) {
+      settings.background = "custom";
+      settings.customBackgroundColor = value;
+      document.getElementById('input-custom-bg').value = value;
+      document.getElementById('input-custom-bg-hex').value = value;
+      renderBackgroundSkins();
+    }
+
+    // Update Battery level
+    function updateDeviceBattery(value) {
+      settings.batteryLevel = parseInt(value);
+      document.getElementById('label-battery-charge').textContent = value + "%";
+      document.getElementById('statusBar-battery-text').textContent = value + "%";
+      
+      const fillBar = document.getElementById('statusBar-battery-charge');
+      fillBar.style.width = value + "%";
+      if (value < 20) {
+        fillBar.className = "h-full bg-red-500 rounded-2xs";
+      } else {
+        fillBar.className = "h-full bg-white rounded-2xs";
+      }
+    }
+
+    // Toggle Signals
+    function toggleSignalState() {
+      settings.wifiConnected = document.getElementById('check-wifi').checked;
+      settings.cellularConnected = document.getElementById('check-cellular').checked;
+      
+      document.getElementById('statusBar-wifi').className = settings.wifiConnected ? "flex items-center" : "hidden";
+      document.getElementById('statusBar-cellular').className = settings.cellularConnected ? "flex items-center" : "hidden";
+    }
+
+    // Read profile parameters
+    function updateProfileState() {
+      settings.name = document.getElementById('input-display-name').value;
+      settings.username = document.getElementById('input-username').value;
+      settings.showVerifiedBadge = document.getElementById('check-verified').checked;
+      settings.isActive = document.getElementById('check-active').checked;
+      settings.activeStatusText = document.getElementById('input-status-text').value;
+
+      document.getElementById('phone-header-name').textContent = settings.name;
+      document.getElementById('phone-header-badge').className = settings.showVerifiedBadge ? "flex items-center shrink-0" : "hidden";
+      document.getElementById('phone-header-active-dot').className = settings.isActive ? "absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-black" : "hidden";
+      document.getElementById('phone-header-subtext').textContent = settings.activeStatusText;
+    }
+
+    // Composer inputs toggle
+    function setComposerSender(sender) {
+      currentComposerSender = sender;
+      document.getElementById('sender-btn-them').className = sender === 'them'
+        ? "px-3 py-1 text-[10px] uppercase font-bold rounded transition bg-[#1A1A1A] text-white border border-[#333]"
+        : "px-3 py-1 text-[10px] uppercase font-bold rounded transition text-zinc-500 hover:text-zinc-300";
+      document.getElementById('sender-btn-me').className = sender === 'me'
+        ? "px-3 py-1 text-[10px] uppercase font-bold rounded transition bg-[#1A1A1A] text-white border border-[#333]"
+        : "px-3 py-1 text-[10px] uppercase font-bold rounded transition text-zinc-500 hover:text-zinc-300";
+    }
+
+    function setComposerType(type) {
+      currentComposerType = type;
+      ['text', 'image', 'voice'].forEach(t => {
+        const btn = document.getElementById(`type-btn-${t}`);
+        const wrap = document.getElementById(`wrapper-input-${t}`);
+        if (t === type) {
+          btn.className = "py-1 text-[10px] font-bold rounded uppercase tracking-wider transition bg-[#1A1A1A] text-white border border-[#333]";
+          wrap.classList.remove('hidden');
+        } else {
+          btn.className = "py-1 text-[10px] font-bold rounded uppercase tracking-wider transition text-zinc-500 hover:text-zinc-300";
+          wrap.classList.add('hidden');
+        }
+      });
+    }
+
+    function handleMessageImageUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        messageImageBase64 = e.target.result;
+        document.getElementById('preview-msg-image-img').src = messageImageBase64;
+        document.getElementById('preview-msg-image-wrap').classList.remove('hidden');
+        document.getElementById('uploader-msg-image-wrap').classList.add('hidden');
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function clearComposerImage() {
+      messageImageBase64 = "";
+      document.getElementById('preview-msg-image-img').src = "";
+      document.getElementById('preview-msg-image-wrap').classList.add('hidden');
+      document.getElementById('uploader-msg-image-wrap').classList.remove('hidden');
+    }
+
+    // Add composed payload item
+    function addNewMessage() {
+      const textVal = document.getElementById('composer-textarea').value.trim();
+      const durVal = document.getElementById('composer-voice-duration').value.trim();
+
+      let newMsg = {
+        id: Date.now(),
+        sender: currentComposerSender,
+        type: currentComposerType,
+        text: "",
+        mediaUrl: "",
+        duration: ""
+      };
+
+      if (currentComposerType === 'text') {
+        if (!textVal) return;
+        newMsg.text = textVal;
+        document.getElementById('composer-textarea').value = "";
+      } else if (currentComposerType === 'voice') {
+        newMsg.duration = durVal || "0:05";
+      } else if (currentComposerType === 'image') {
+        if (!messageImageBase64) return;
+        newMsg.mediaUrl = messageImageBase64;
+        clearComposerImage();
+      }
+
+      messages.push(newMsg);
+      renderAll();
+    }
+
+    // Delete single item
+    function deleteMessageItem(id) {
+      messages = messages.filter(m => m.id !== id);
+      renderAll();
+    }
+
+    // Change sender bubble directly
+    function swapMessageSender(id) {
+      messages = messages.map(m => {
+        if (m.id === id) {
+          return { ...m, sender: m.sender === 'me' ? 'them' : 'me' };
+        }
+        return m;
+      });
+      renderAll();
+    }
+
+    // Launch edit module inline
+    function triggerInlineMessageEditing(id) {
+      const target = messages.find(m => m.id === id);
+      if (!target) return;
+
+      inlineEditingId = id;
+      document.getElementById('composer-main-box').classList.add('hidden');
+      document.getElementById('composer-inline-editor').classList.remove('hidden');
+
+      document.getElementById('inline-editTextarea').value = target.text || "";
+      setInlineSenderButtons(target.sender);
+    }
+
+    let inlineSenderSelected = "them";
+    function setInlineSender(sender) {
+      inlineSenderSelected = sender;
+      setInlineSenderButtons(sender);
+    }
+
+    function setInlineSenderButtons(sender) {
+      inlineSenderSelected = sender;
+      document.getElementById('inline-sender-them').className = sender === 'them'
+        ? "px-2.5 py-1 text-[10px] uppercase font-bold rounded transition bg-[#1A1A1A] text-white border border-[#333]"
+        : "px-2.5 py-1 text-[10px] uppercase font-bold rounded transition text-zinc-500 hover:text-zinc-300";
+      document.getElementById('inline-sender-me').className = sender === 'me'
+        ? "px-2.5 py-1 text-[10px] uppercase font-bold rounded transition bg-[#1A1A1A] text-white border border-[#333]"
+        : "px-2.5 py-1 text-[10px] uppercase font-bold rounded transition text-zinc-500 hover:text-zinc-300";
+    }
+
+    function saveInlineMessage() {
+      const text = document.getElementById('inline-editTextarea').value.trim();
+      messages = messages.map(m => {
+        if (m.id === inlineEditingId) {
+          return { ...m, text, sender: inlineSenderSelected };
+        }
+        return m;
+      });
+      cancelInlineEditing();
+      renderAll();
+    }
+
+    function cancelInlineEditing() {
+      inlineEditingId = null;
+      document.getElementById('composer-main-box').classList.remove('hidden');
+      document.getElementById('composer-inline-editor').classList.add('hidden');
+    }
+
+    // Fast action controllers
+    function undoLastMsg() {
+      messages.pop();
+      renderAll();
+    }
+
+    function clearAllMsg() {
+      messages = [];
+      renderAll();
+    }
+
+    // Skins controller rendering
+    function renderBackgroundSkins() {
+      const previewArea = document.getElementById('phone-canvas');
+      const chatHeader = document.getElementById('phone-chat-header');
+      const chatFooter = document.getElementById('phone-chat-footer');
+
+      // Default Clean Ups
+      previewArea.style.background = "";
+      previewArea.className = "w-[320px] h-[640px] bg-black rounded-[48px] border-[6px] border-[#222] shadow-2xl overflow-hidden relative flex flex-col";
+      chatHeader.style.borderColor = "";
+      chatHeader.style.background = "";
+      chatFooter.style.borderColor = "";
+      chatFooter.style.background = "";
+
+      if (settings.background === 'black') {
+        previewArea.classList.add('bg-black');
+      } else if (settings.background === 'gray') {
+        previewArea.style.backgroundColor = '#1e1e1e';
+      } else if (settings.background === 'blue') {
+        previewArea.style.background = 'linear-gradient(to right, #082f49, #000000)';
+      } else if (settings.background === 'purple') {
+        previewArea.style.background = 'linear-gradient(to right, #3b0764, #000000)';
+      } else if (settings.background === 'instagram-gradient') {
+        previewArea.style.background = 'linear-gradient(135deg, #f56040 0%, #c13584 50%, #405de6 100%)';
+      } else if (settings.background === 'classic-light') {
+        previewArea.className = "w-[320px] h-[640px] bg-white rounded-[48px] border-[6px] border-zinc-300 shadow-2xl overflow-hidden relative flex flex-col text-black";
+        chatHeader.style.background = "#FFFFFF";
+        chatHeader.style.borderBottom = "1px solid #EAEAEA";
+        chatFooter.style.background = "#FFFFFF";
+        chatFooter.style.borderTop = "1px solid #EAEAEA";
+      } else if (settings.background === 'custom' && settings.customBackgroundColor) {
+        previewArea.style.backgroundColor = settings.customBackgroundColor;
+      }
+    }
+
+    // Dynamic stream rendering
+    function renderAll() {
+      renderBackgroundSkins();
+      
+      const container = document.getElementById('chat-flow');
+      container.innerHTML = "";
+
+      messages.forEach(msg => {
+        const isMe = msg.sender === 'me';
+        const isClassicalLight = settings.background === 'classic-light';
+
+        const itemWrap = document.createElement('div');
+        itemWrap.className = `flex ${isMe ? 'justify-end' : 'justify-start'} items-end gap-2 group relative mb-1 animate-fadeIn`;
+
+        // Profile Avatar icon for Left Side incoming messages
+        if (!isMe) {
+          const avatarMarker = document.createElement('div');
+          avatarMarker.className = "w-6 h-6 rounded-full bg-zinc-800 shrink-0 border border-white/5 overflow-hidden font-display";
+          if (settings.theirAvatar) {
+            avatarMarker.innerHTML = `<img src="${settings.theirAvatar}" class="w-full h-full object-cover">`;
+          } else {
+            avatarMarker.innerHTML = `<div class="w-full h-full flex items-center justify-center text-[8px] font-bold text-gray-500">IG</div>`;
+          }
+          itemWrap.appendChild(avatarMarker);
+        }
+
+        // Action Overlay floating box
+        const overlay = document.createElement('div');
+        overlay.className = "absolute hidden group-hover:flex items-center gap-1.5 -top-8 px-2 py-1 bg-black/95 border border-[#333] rounded shadow-lg z-20 text-[9px] text-zinc-300 font-bold select-none";
+        if (isMe) {
+          overlay.className += " right-0";
+        } else {
+          overlay.className += " left-8";
+        }
+
+        overlay.innerHTML = `
+          <button onclick="swapMessageSender(${msg.id})" title="Change Sender" class="hover:text-white px-1.5 py-0.5 rounded flex items-center gap-1">
+            <i data-lucide="arrow-left-right" class="w-3 h-3 text-sky-400"></i> Swap
+          </button>
+          <span class="text-[#222]">|</span>
+          <button onclick="triggerInlineMessageEditing(${msg.id})" title="Edit message content" class="hover:text-white px-1.5 py-0.5 rounded flex items-center gap-1">
+            <i data-lucide="edit" class="w-3 h-3 text-green-400"></i> Edit
+          </button>
+          <span class="text-[#222]">|</span>
+          <button onclick="deleteMessageItem(${msg.id})" title="Delete message line" class="hover:text-red-400 px-1.5 py-0.5 rounded flex items-center gap-1">
+            <i data-lucide="trash-2" class="w-3 h-3 text-red-500"></i> Del
+          </button>
+        `;
+        itemWrap.appendChild(overlay);
+
+        // Core Bubble contents
+        const contentBubble = document.createElement('div');
+        
+        let bubbleStyleClasses = "";
+        if (isMe) {
+          if (isClassicalLight) {
+            bubbleStyleClasses = "bg-[#0095F6] text-white text-[13px] px-4 py-2 rounded-[18px] rounded-br-[4px] max-w-[80%]";
+          } else {
+            bubbleStyleClasses = "bg-gradient-to-tr from-purple-600 via-pink-500 to-orange-400 text-white text-[13px] px-4 py-2 rounded-[18px] rounded-br-[4px] max-w-[80%]";
+          }
+        } else {
+          if (isClassicalLight) {
+            bubbleStyleClasses = "bg-[#EAEAEA] text-black text-[13px] px-4 py-2 rounded-[18px] rounded-bl-[4px] max-w-[80%]";
+          } else {
+            bubbleStyleClasses = "bg-[#262626] text-white text-[13px] px-4 py-2 rounded-[18px] rounded-bl-[4px] max-w-[80%]";
+          }
+        }
+        contentBubble.className = bubbleStyleClasses;
+
+        // Populate by type
+        if (msg.type === 'text') {
+          contentBubble.textContent = msg.text;
+        } else if (msg.type === 'image') {
+          contentBubble.className = "max-w-[75%] rounded-[18px] overflow-hidden border border-white/5 scale-100";
+          contentBubble.innerHTML = `<img src="${msg.mediaUrl || ''}" class="w-full object-cover max-h-[220px]">`;
+        } else if (msg.type === 'voice') {
+          contentBubble.className += " flex items-center gap-3 py-2.5 px-4 min-w-[130px] inline-flex";
+          contentBubble.innerHTML = `
+            <i data-lucide="play" class="w-4 h-4 text-white shrink-0 fill-white scale-90"></i>
+            <div class="flex-1 flex flex-col gap-0.5">
+              <div class="h-[2px] bg-white/30 rounded w-24 relative overflow-hidden">
+                <div class="absolute left-0 top-0 h-full w-[40%] bg-white"></div>
+              </div>
+              <span class="text-[9px] uppercase font-bold tracking-wider opacity-85 font-mono">${msg.duration}</span>
+            </div>
+          `;
+        }
+
+        itemWrap.appendChild(contentBubble);
+        container.appendChild(itemWrap);
+      });
+
+      // Scroll phone automatically to bottom
+      const scroller = document.getElementById('chat-flow');
+      scroller.scrollTop = scroller.scrollHeight;
+
+      // Sync Avatar assets with preview header
+      const avatarContainer = document.getElementById('phone-header-avatar');
+      const avatarImg = document.getElementById('avatar-img-phone');
+      if (settings.theirAvatar) {
+        avatarImg.src = settings.theirAvatar;
+        avatarImg.className = "w-full h-full rounded-full object-cover";
+      } else {
+        avatarImg.className = "hidden";
+      }
+
+      lucide.createIcons();
+    }
+
+    // Download HD Snapshot Implementation
+    function exportSnapshotPng() {
+      const canvasArea = document.getElementById('phone-canvas');
+      if (!canvasArea) return;
+
+      const chatStream = document.getElementById('chat-flow');
+      const prevOverflow = chatStream.style.overflow || '';
+      chatStream.style.overflow = 'visible';
+
+      htmlToImage.toPng(canvasArea, {
+        pixelRatio: 3,
+        cacheBust: true,
+        backgroundColor: null
+      })
+      .then(url => {
+        const link = document.createElement('a');
+        link.download = `Perfect_DM_${settings.name.replace(/\s+/g, '_') || 'Mockup'}.png`;
+        link.href = url;
+        link.click();
+        chatStream.style.overflow = prevOverflow;
+      })
+      .catch(err => {
+        console.error('Snapshot failed to compile properly:', err);
+        chatStream.style.overflow = prevOverflow;
+      });
+    }
+
+    // Blogger Custom code generator assembly
+    function prepareBloggerEmbedSnippet() {
+      const codeBlock = `<!-- START INSTAGRAM CONTEXT CHAT WIDGET -->
+<style>
+  .ig-chat-sandbox {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: #FFFFFF;
+    background-color: ${settings.customBackgroundColor || '#0A0A0A'};
+    border: 1px solid #222;
+    border-radius: 12px;
+    padding: 16px;
+    max-width: 480px;
+    margin: 20px auto;
+  }
+  .ig-header {
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    padding-bottom: 12px;
+    margin-bottom: 16px;
+  }
+  .ig-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #333;
+    margin-right: 12px;
+  }
+  .ig-name {
+    font-size: 14px;
+    font-weight: 700;
+  }
+  .ig-bubble-me {
+    background: linear-gradient(135deg, #A33AF2, #E849C0);
+    padding: 10px 14px;
+    border-radius: 18px 18px 4px 18px;
+    margin-left: auto;
+    font-size: 13px;
+    max-width: 80%;
+    margin-bottom: 8px;
+  }
+  .ig-bubble-them {
+    background: #262626;
+    padding: 10px 14px;
+    border-radius: 18px 18px 18px 4px;
+    margin-right: auto;
+    font-size: 13px;
+    max-width: 80%;
+    margin-bottom: 8px;
+  }
+</style>
+
+<div class="ig-chat-sandbox">
+  <div class="ig-header">
+    <div class="ig-avatar"></div>
+    <div class="ig-name">${settings.name}</div>
+  </div>
+  <div class="ig-bubble-them">Hello! Is this template functioning correctly on Blogger pages?</div>
+  <div class="ig-bubble-me">Yes, fully isolated so your layouts will never suffer from conflicts!</div>
+</div>
+<!-- END INSTAGRAM CONTEXT CHAT WIDGET -->`;
+
+      // Assign to UI copier
+      document.getElementById('copy-btn').setAttribute('data-clipboard-text', codeBlock);
+    }
+
+    function copyWidgetCode() {
+      const triggerBtn = document.getElementById('copy-btn');
+      const textToCopy = triggerBtn.getAttribute('data-clipboard-text');
+
+      navigator.clipboard.writeText(textToCopy).then(() => {
+        triggerBtn.innerHTML = `<i data-lucide="check" class="w-4 h-4"></i> Copied!`;
+        lucide.createIcons();
+        setTimeout(() => {
+          triggerBtn.innerHTML = `<i data-lucide="copy" class="w-4 h-4"></i> Copy Widget Code`;
+          lucide.createIcons();
+        }, 1800);
+      });
+    }
+  </script>
+</body>
+</html>
